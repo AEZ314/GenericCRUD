@@ -3,5 +3,5 @@ using System.ComponentModel.DataAnnotations;
 
 namespace GenericCRUD
 {
-    public delegate bool ValidationDelegate<T>(CrudParam<T> param, ref IEnumerable<ValidationResult> errors);
+    public delegate bool ValidationDelegate<T>(CrudParam<T> param, ref IEnumerable<string> errors);
 }

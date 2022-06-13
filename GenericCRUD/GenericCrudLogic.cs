@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using Dapper;
 using MicroOrm.Dapper.Repositories;
 using Microsoft.AspNetCore.JsonPatch;
 
@@ -10,7 +12,7 @@ namespace GenericCRUD
         public Dictionary<string, Validator<T>> Validators { get; set; } = new();
         protected readonly IDapperRepository<T> _repo;
 
-        
+
         public GenericCrudLogic(IDapperRepository<T> repo)
         {
             _repo = repo;
@@ -20,57 +22,58 @@ namespace GenericCRUD
         private void SetupDefaultValidators()
         {
             var create = Validators[nameof(Create)] = new Validator<T>();
-            create.ParameterValidation = (CrudParam<T> param, ref IEnumerable<ValidationResult> errors) =>
+            create.ParameterValidation = (CrudParam<T> param, ref IEnumerable<string> errors) =>
             {
                 return true;
             };
-            create.EntityValidation = (CrudParam<T> param, ref IEnumerable<ValidationResult> errors) =>
+            //create.EntityValidation = Validator<T>.DataAnnotationEntityValidation;
+            create.EntityValidation = (CrudParam<T> param, ref IEnumerable<string> errors) =>
             {
                 return true;
             };
-            create.AuthorityValidation = (CrudParam<T> param, ref IEnumerable<ValidationResult> errors) =>
+            create.AuthorityValidation = (CrudParam<T> param, ref IEnumerable<string> errors) =>
             {
                 return true;
             };
             
             var read = Validators[nameof(GetById)] = new Validator<T>();
-            read.ParameterValidation = (CrudParam<T> param, ref IEnumerable<ValidationResult> errors) =>
+            read.ParameterValidation = (CrudParam<T> param, ref IEnumerable<string> errors) =>
             {
                 return true;
             };
-            read.EntityValidation = (CrudParam<T> param, ref IEnumerable<ValidationResult> errors) =>
+            read.EntityValidation = (CrudParam<T> param, ref IEnumerable<string> errors) =>
             {
                 return true;
             };
-            read.AuthorityValidation = (CrudParam<T> param, ref IEnumerable<ValidationResult> errors) =>
+            read.AuthorityValidation = (CrudParam<T> param, ref IEnumerable<string> errors) =>
             {
                 return true;
             };
             
             var update = Validators[nameof(Update)] = new Validator<T>();
-            update.ParameterValidation = (CrudParam<T> param, ref IEnumerable<ValidationResult> errors) =>
+            update.ParameterValidation = (CrudParam<T> param, ref IEnumerable<string> errors) =>
             {
                 return true;
             };
-            update.EntityValidation = (CrudParam<T> param, ref IEnumerable<ValidationResult> errors) =>
+            update.EntityValidation = (CrudParam<T> param, ref IEnumerable<string> errors) =>
             {
                 return true;
             };
-            update.AuthorityValidation = (CrudParam<T> param, ref IEnumerable<ValidationResult> errors) =>
+            update.AuthorityValidation = (CrudParam<T> param, ref IEnumerable<string> errors) =>
             {
                 return true;
             };
             
             var delete = Validators[nameof(Delete)] = new Validator<T>();
-            delete.ParameterValidation = (CrudParam<T> param, ref IEnumerable<ValidationResult> errors) =>
+            delete.ParameterValidation = (CrudParam<T> param, ref IEnumerable<string> errors) =>
             {
                 return true;
             };
-            delete.EntityValidation = (CrudParam<T> param, ref IEnumerable<ValidationResult> errors) =>
+            delete.EntityValidation = (CrudParam<T> param, ref IEnumerable<string> errors) =>
             {
                 return true;
             };
-            delete.AuthorityValidation = (CrudParam<T> param, ref IEnumerable<ValidationResult> errors) =>
+            delete.AuthorityValidation = (CrudParam<T> param, ref IEnumerable<string> errors) =>
             {
                 return true;
             };

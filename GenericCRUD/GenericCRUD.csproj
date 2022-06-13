@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="FluentValidation" Version="11.0.3" />
       <PackageReference Include="MicroOrm.Dapper.Repositories" Version="1.22.0" />
       <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="5.0.17" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />

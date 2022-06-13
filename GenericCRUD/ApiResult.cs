@@ -8,7 +8,7 @@ namespace GenericCRUD
     {
         public T Result { get; set; }
         public bool Successful { get; set; }
-        public List<ValidationResult> Errors { get; set; } = new();
+        public List<string> Errors { get; set; } = new();
         public List<string> Messages { get; set; } = new();
 
         public ApiResult() { }
