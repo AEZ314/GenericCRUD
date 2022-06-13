@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace GenericCRUD
 {
-    public interface IGenericCrudLogic<T> where T : class
+    public interface IGenericCrudLogic<T> where T : class, IIdEntity
     {
         Dictionary<string, Validator<T>> Validators { get; set; }
 

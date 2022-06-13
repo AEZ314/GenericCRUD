@@ -9,7 +9,7 @@ using Dapper;
 namespace GenericCRUD
 {
     [ApiController]
-    public class GenericCrudBaseController<T> : ControllerBase where T : class
+    public class GenericCrudBaseController<T> : ControllerBase where T : class, IIdEntity
     {
         protected readonly IGenericCrudLogic<T> _logic;
 

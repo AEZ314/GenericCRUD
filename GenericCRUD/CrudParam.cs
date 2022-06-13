@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.JsonPatch;
 
 namespace GenericCRUD
 {
-    public class CrudParam<T> where T : class
+    public class CrudParam<T> where T : class, IIdEntity
     {
         public ClaimsPrincipal Requester { get; set; }
         public T Entity { get; set; }

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.JsonPatch;
 
 namespace GenericCRUD
 {
-    public class GenericCrudLogic<T> : IGenericCrudLogic<T> where T : class
+    public class GenericCrudLogic<T> : IGenericCrudLogic<T> where T : class, IIdEntity
     {
         public Dictionary<string, Validator<T>> Validators { get; set; } = new();
         protected readonly IDapperRepository<T> _repo;
@@ -132,7 +132,13 @@ namespace GenericCRUD
         
         public ApiResult<int?> Create(CrudParam<T> param)
         {
-            throw new System.NotImplementedException();
+            var errors = new List<Exception>();
+            if (!Validators[nameof(Create)].Validate(param, ref errors))
+                return new ApiResult<int?>() { Result = null, Successful = false, Errors = errors };
+
+            _repo.Insert(param.Entity);
+
+            return new ApiResult<int?>(param.Entity.Id);
         }
 
         public ApiResult<int?> Create(CrudParam<T> param, T canvas)
@@ -142,11 +148,21 @@ namespace GenericCRUD
 
         public ApiResult<IEnumerable<T>> GetById(CrudParam<T> param)
         {
-            throw new System.NotImplementedException();
+            var errors = new List<Exception>();
+            if (!Validators[nameof(GetById)].Validate(param, ref errors))
+                return new ApiResult<IEnumerable<T>>() { Result = null, Successful = false, Errors = errors };
+
+            var entities = _repo.FindAll(x => param.EntityIds.Contains(x.Id));
+
+            return new ApiResult<IEnumerable<T>>(entities);
         }
 
         public ApiResult<bool?> Update(CrudParam<T> param)
         {
+            var errors = new List<Exception>();
+            if (!Validators[nameof(Update)].Validate(param, ref errors))
+                return new ApiResult<bool?>() { Result = null, Successful = false, Errors = errors };
+
             throw new System.NotImplementedException();
         }
 
@@ -157,7 +173,13 @@ namespace GenericCRUD
 
         public ApiResult<bool?> Delete(CrudParam<T> param)
         {
-            throw new System.NotImplementedException();
+            var errors = new List<Exception>();
+            if (!Validators[nameof(Delete)].Validate(param, ref errors))
+                return new ApiResult<bool?>() { Result = null, Successful = false, Errors = errors };
+
+            var success = _repo.Delete(x => param.EntityIds.Contains(x.Id));
+
+            return new ApiResult<bool?>(success);        
         }
     }
 }

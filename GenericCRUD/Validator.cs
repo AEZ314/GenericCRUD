@@ -5,7 +5,7 @@ using Dapper;
 
 namespace GenericCRUD
 {
-    public class Validator<T> where T : class
+    public class Validator<T> where T : class, IIdEntity
     {
         public ValidationDelegate<T> ParameterValidation { get; set; } = (CrudParam<T> param, ref List<Exception> errors) => true;
         public ValidationDelegate<T> EntityValidation { get; set; } = (CrudParam<T> param, ref List<Exception> errors) => true;
