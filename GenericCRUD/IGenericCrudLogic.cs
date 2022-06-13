@@ -12,7 +12,7 @@ namespace GenericCRUD
         ApiResult<int?> Create(CrudParam<T> param, T canvas);
         ApiResult<bool?> Delete(CrudParam<T> param);
         ApiResult<IEnumerable<T>> GetById(CrudParam<T> param);
-        ApiResult<bool?> PartialUpdate(CrudParam<T> param, JsonPatchDocument<T> patchDoc);
+        ApiResult<bool?> PartialUpdate(CrudParam<T> param);
         ApiResult<bool?> Update(CrudParam<T> param);
     }
 }

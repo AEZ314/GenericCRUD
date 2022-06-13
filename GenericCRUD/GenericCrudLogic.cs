@@ -22,66 +22,86 @@ namespace GenericCRUD
 
         private void SetupDefaultValidators()
         {
+            #region Create
+            
             var create = Validators[nameof(Create)] = new Validator<T>();
-            create.ParameterValidation = (CrudParam<T> param, ref IEnumerable<Exception> errors) =>
-            {
-                return true;
-            };
-            //create.EntityValidation = Validator<T>.DataAnnotationEntityValidation;
-            create.EntityValidation = (CrudParam<T> param, ref IEnumerable<Exception> errors) =>
-            {
-                return true;
-            };
-            create.AuthorityValidation = (CrudParam<T> param, ref IEnumerable<Exception> errors) =>
-            {
-                return true;
-            };
+            
+            create.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
+                IsNotNull(param, ref errors) && // ** If it's null, it's an API mistake. Shouldn't return to client.
+                IsNotNull(param.Requester, ref errors) &&
+                IsNotNull(param.Entity, ref errors);
+            
+            create.EntityValidation = Validator<T>.DataAnnotationEntityValidation;
+            
+            create.AuthorityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
+            
+            #endregion
+
+            #region Read
             
             var read = Validators[nameof(GetById)] = new Validator<T>();
-            read.ParameterValidation = (CrudParam<T> param, ref IEnumerable<Exception> errors) =>
-            {
-                return true;
-            };
-            read.EntityValidation = (CrudParam<T> param, ref IEnumerable<Exception> errors) =>
-            {
-                return true;
-            };
-            read.AuthorityValidation = (CrudParam<T> param, ref IEnumerable<Exception> errors) =>
-            {
-                return true;
-            };
+
+            read.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
+                IsNotNull(param, ref errors) &&
+                IsNotNull(param.Requester, ref errors) &&
+                IsNotNullEmpty(param.EntityIds, ref errors);
+            
+            read.EntityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
+            
+            read.AuthorityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
+            
+            #endregion
+            
+            #region Update
             
             var update = Validators[nameof(Update)] = new Validator<T>();
-            update.ParameterValidation = (CrudParam<T> param, ref IEnumerable<Exception> errors) =>
-            {
-                return true;
-            };
-            update.EntityValidation = (CrudParam<T> param, ref IEnumerable<Exception> errors) =>
-            {
-                return true;
-            };
-            update.AuthorityValidation = (CrudParam<T> param, ref IEnumerable<Exception> errors) =>
-            {
-                return true;
-            };
+            
+            update.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
+                IsNotNull(param, ref errors) &&
+                IsNotNull(param.Requester, ref errors) &&
+                IsNotNull(param.Entity, ref errors);
+                // ** Should I null check param.Entity.Id?
+            
+            update.EntityValidation = Validator<T>.DataAnnotationEntityValidation;
+            
+            update.AuthorityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
+            
+            #endregion
+
+            #region PartialUpdate
+            
+            var partial = Validators[nameof(PartialUpdate)] = new Validator<T>();
+            
+            partial.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
+                IsNotNull(param, ref errors) &&
+                IsNotNull(param.Requester, ref errors) &&
+                IsNotNull(param.Entity, ref errors) &&
+                IsNotNull(param.Patch, ref errors);
+            // ** Should I null check param.Entity.Id?
+            
+            partial.EntityValidation = Validator<T>.DataAnnotationEntityValidation;
+            
+            partial.AuthorityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
+            
+            #endregion
+
+            #region Delete
             
             var delete = Validators[nameof(Delete)] = new Validator<T>();
-            delete.ParameterValidation = (CrudParam<T> param, ref IEnumerable<Exception> errors) =>
-            {
-                return true;
-            };
-            delete.EntityValidation = (CrudParam<T> param, ref IEnumerable<Exception> errors) =>
-            {
-                return true;
-            };
-            delete.AuthorityValidation = (CrudParam<T> param, ref IEnumerable<Exception> errors) =>
-            {
-                return true;
-            };
+            delete.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
+                IsNotNull(param, ref errors) &&
+                IsNotNull(param.Requester, ref errors) &&
+                IsNotNullEmpty(param.EntityIds, ref errors);
+
+            delete.EntityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
+
+            delete.AuthorityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
+
+            #endregion
         }
         
         
-        protected bool NullCheck<J>(J item, ref List<Exception> errors)
+        protected bool IsNotNull<J>(J item, ref List<Exception> errors)
         {
             if (item != null)
                 return true;
@@ -89,7 +109,7 @@ namespace GenericCRUD
             errors.Add(new ArgumentNullException(item.GetType().Name));
             return false;
         }
-        protected bool EnumerableLengthCheck<J>(IEnumerable<J> items, ref List<Exception> errors)
+        protected bool IsNotNullEmpty<J>(IEnumerable<J> items, ref List<Exception> errors)
         {
             if (items != null && items.Count() > 0)
                 return true;
@@ -98,7 +118,7 @@ namespace GenericCRUD
 
             return false;
         }
-        protected bool IntCheck(ref List<Exception> errors, int integer, int inclusiveMin = int.MinValue, int inclusiveMax = int.MaxValue)
+        protected bool IsInRange(ref List<Exception> errors, int integer, int inclusiveMin = int.MinValue, int inclusiveMax = int.MaxValue)
         {
             if (integer >= inclusiveMin || integer <= inclusiveMax)
                 return true;
@@ -130,7 +150,7 @@ namespace GenericCRUD
             throw new System.NotImplementedException();
         }
 
-        public ApiResult<bool?> PartialUpdate(CrudParam<T> param, JsonPatchDocument<T> patchDoc)
+        public ApiResult<bool?> PartialUpdate(CrudParam<T> param)
         {
             throw new System.NotImplementedException();
         }

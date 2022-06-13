@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
  using System;
 using System.Collections.Generic;
 using System.Text;
+using Dapper;
 
 
 namespace GenericCRUD
@@ -74,9 +75,9 @@ namespace GenericCRUD
                 new CrudParam<T>
                 {
                     Requester = User,
-                    EntityIds = new[] { id },
-                },
-                patchDoc);
+                    EntityIds = new[] { id }.AsList(),
+                    Patch = patchDoc,
+                });
             return result;
         }
 
@@ -90,7 +91,7 @@ namespace GenericCRUD
                 new CrudParam<T>
                 {
                     Requester = User,
-                    EntityIds = new[] { id },
+                    EntityIds = new[] { id }.AsList(),
                 });
             return result;
         }

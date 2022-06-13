@@ -5,13 +5,13 @@ using Dapper;
 
 namespace GenericCRUD
 {
-    public class Validator<T>
+    public class Validator<T> where T : class
     {
-        public ValidationDelegate<T> ParameterValidation { get; set; } = (CrudParam<T> param, ref IEnumerable<Exception> errors) => true;
-        public ValidationDelegate<T> EntityValidation { get; set; } = (CrudParam<T> param, ref IEnumerable<Exception> errors) => true;
-        public ValidationDelegate<T> AuthorityValidation { get; set; } = (CrudParam<T> param, ref IEnumerable<Exception> errors) => true;
+        public ValidationDelegate<T> ParameterValidation { get; set; } = (CrudParam<T> param, ref List<Exception> errors) => true;
+        public ValidationDelegate<T> EntityValidation { get; set; } = (CrudParam<T> param, ref List<Exception> errors) => true;
+        public ValidationDelegate<T> AuthorityValidation { get; set; } = (CrudParam<T> param, ref List<Exception> errors) => true;
 
-        public virtual bool Validate(CrudParam<T> param, ref IEnumerable<Exception> errors)
+        public virtual bool Validate(CrudParam<T> param, ref List<Exception> errors)
         {
             return ParameterValidation(param, ref errors) && 
                    EntityValidation(param, ref errors) && 
@@ -19,14 +19,14 @@ namespace GenericCRUD
         }
         
         
-        public static bool DataAnnotationEntityValidation(CrudParam<T> param, ref IEnumerable<Exception> errors)
+        public static bool DataAnnotationEntityValidation(CrudParam<T> param, ref List<Exception> errors)
         {
             var annotationsErrors = new List<ValidationResult>();
             var isValid = Validator.TryValidateObject(param.Entity, new ValidationContext(param.Entity), annotationsErrors, true);
 
             foreach (var error in annotationsErrors)
             {
-                errors.AsList().Add(new ArgumentException(error.ErrorMessage));
+                errors.Add(new ArgumentException(error.ErrorMessage));
             }
             
             return isValid;

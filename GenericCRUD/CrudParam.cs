@@ -2,13 +2,15 @@
 using System.Linq;
 using System.Net.Cache;
 using System.Security.Claims;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace GenericCRUD
 {
-    public class CrudParam<T>
+    public class CrudParam<T> where T : class
     {
         public ClaimsPrincipal Requester { get; set; }
         public T Entity { get; set; }
-        public IEnumerable<int> EntityIds { get; set; }
+        public JsonPatchDocument<T> Patch { get; set; }
+        public List<int> EntityIds { get; set; }
     }
 }
