@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Threading.Tasks;
 using Dapper;
 using MicroOrm.Dapper.Repositories;
 using Microsoft.AspNetCore.JsonPatch;
@@ -130,34 +131,29 @@ namespace GenericCRUD
         
         
         
-        public ApiResult<int?> Create(CrudParam<T> param)
+        public async Task<ApiResult<int?>> Create(CrudParam<T> param)
         {
             var errors = new List<Exception>();
             if (!Validators[nameof(Create)].Validate(param, ref errors))
                 return new ApiResult<int?>() { Result = null, Successful = false, Errors = errors };
 
-            _repo.Insert(param.Entity);
+            await _repo.InsertAsync(param.Entity);
 
             return new ApiResult<int?>(param.Entity.Id);
         }
 
-        public ApiResult<int?> Create(CrudParam<T> param, T canvas)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public ApiResult<IEnumerable<T>> GetById(CrudParam<T> param)
+        public async Task<ApiResult<IEnumerable<T>>> GetById(CrudParam<T> param)
         {
             var errors = new List<Exception>();
             if (!Validators[nameof(GetById)].Validate(param, ref errors))
                 return new ApiResult<IEnumerable<T>>() { Result = null, Successful = false, Errors = errors };
 
-            var entities = _repo.FindAll(x => param.EntityIds.Contains(x.Id));
+            var entities = await _repo.FindAllAsync(x => param.EntityIds.Contains(x.Id));
 
             return new ApiResult<IEnumerable<T>>(entities);
         }
 
-        public ApiResult<bool?> Update(CrudParam<T> param)
+        public async Task<ApiResult<bool?>> Update(CrudParam<T> param)
         {
             var errors = new List<Exception>();
             if (!Validators[nameof(Update)].Validate(param, ref errors))
@@ -166,18 +162,18 @@ namespace GenericCRUD
             throw new System.NotImplementedException();
         }
 
-        public ApiResult<bool?> PartialUpdate(CrudParam<T> param)
+        public async Task<ApiResult<bool?>> PartialUpdate(CrudParam<T> param)
         {
             throw new System.NotImplementedException();
         }
 
-        public ApiResult<bool?> Delete(CrudParam<T> param)
+        public async Task<ApiResult<bool?>> Delete(CrudParam<T> param)
         {
             var errors = new List<Exception>();
             if (!Validators[nameof(Delete)].Validate(param, ref errors))
                 return new ApiResult<bool?>() { Result = null, Successful = false, Errors = errors };
 
-            var success = _repo.Delete(x => param.EntityIds.Contains(x.Id));
+            var success = await _repo.DeleteAsync(x => param.EntityIds.Contains(x.Id));
 
             return new ApiResult<bool?>(success);        
         }

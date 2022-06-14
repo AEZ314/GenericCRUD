@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.JsonPatch;
 using Newtonsoft.Json;
 
@@ -8,11 +9,10 @@ namespace GenericCRUD
     {
         Dictionary<string, Validator<T>> Validators { get; set; }
 
-        ApiResult<int?> Create(CrudParam<T> param);
-        ApiResult<int?> Create(CrudParam<T> param, T canvas);
-        ApiResult<bool?> Delete(CrudParam<T> param);
-        ApiResult<IEnumerable<T>> GetById(CrudParam<T> param);
-        ApiResult<bool?> PartialUpdate(CrudParam<T> param);
-        ApiResult<bool?> Update(CrudParam<T> param);
+        Task<ApiResult<int?>> Create(CrudParam<T> param);
+        Task<ApiResult<bool?>> Delete(CrudParam<T> param);
+        Task<ApiResult<IEnumerable<T>>> GetById(CrudParam<T> param);
+        Task<ApiResult<bool?>> PartialUpdate(CrudParam<T> param);
+        Task<ApiResult<bool?>> Update(CrudParam<T> param);
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
  using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Dapper;
 
 
@@ -24,76 +25,71 @@ namespace GenericCRUD
         /// Create a <see cref="T"/>.
         /// </summary>
         [HttpPost]
-        public virtual ApiResult<int?> Create([FromBody] T entity)
+        public virtual async Task<ApiResult<int?>> Create([FromBody] T entity)
         {
-            var result = _logic.Create(
+            return await _logic.Create(
                 new CrudParam<T>
                 {
                     Requester = User,
                     Entity = entity,
                 });
-            return result;
         }
 
         /// <summary>
         /// Get <see cref="T"/> by IDs.
         /// </summary>
         [HttpGet]
-        public virtual ApiResult<IEnumerable<T>> GetById([FromQuery] List<int> ids)
+        public virtual async Task<ApiResult<IEnumerable<T>>> GetById([FromQuery] List<int> ids)
         {
-            var result = _logic.GetById(
+            return await _logic.GetById(
                 new CrudParam<T>
                 {
                     Requester = User,
                     EntityIds = ids,
                 });
-            return result;
         }
 
         /// <summary>
         /// Update a <see cref="T"/>.
         /// </summary>
         [HttpPut]
-        public virtual ApiResult<bool?> Update([FromBody] T entity)
+        public virtual async Task<ApiResult<bool?>> Update([FromBody] T entity)
         {
-            var result = _logic.Update(
+            return await _logic.Update(
                 new CrudParam<T>
                 {
                     Requester = User,
                     Entity = entity,
                 });
-            return result;
         }
 
         /// <summary>
         /// Partial update a <see cref="T"/>.
         /// </summary>
         [HttpPatch]
-        public virtual ApiResult<bool?> PartialUpdate([FromQuery] int id, [FromBody] JsonPatchDocument<T> patchDoc)
+        public virtual async Task<ApiResult<bool?>> PartialUpdate([FromQuery] int id, [FromBody] JsonPatchDocument<T> patchDoc)
         {
-            var result = _logic.PartialUpdate(
+            return await _logic.PartialUpdate(
                 new CrudParam<T>
                 {
                     Requester = User,
                     EntityIds = new[] { id }.AsList(),
                     Patch = patchDoc,
                 });
-            return result;
         }
 
         /// <summary>
         /// Delete a <see cref="T"/>.
         /// </summary>
         [HttpDelete]
-        public virtual ApiResult<bool?> Delete([FromQuery] int id)
+        public virtual async Task<ApiResult<bool?>> Delete([FromQuery] int id)
         {
-            var result = _logic.Delete(
+            return await _logic.Delete(
                 new CrudParam<T>
                 {
                     Requester = User,
                     EntityIds = new[] { id }.AsList(),
                 });
-            return result;
         }
     }
 }
