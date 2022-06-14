@@ -12,6 +12,8 @@ namespace GenericCRUD
     public class GenericCrudLogic<T> : IGenericCrudLogic<T> where T : class, IIdEntity
     {
         public Dictionary<string, Validator<T>> Validators { get; set; } = new();
+
+        public Func<CrudParam<T>, IDapperRepository<T>, Task<IEnumerable<T>>> DbReadSelector = (param, repo) => repo.FindAllAsync(x => param.EntityIds.Contains(x.Id));
         protected readonly IDapperRepository<T> _repo;
 
 
@@ -160,7 +162,7 @@ namespace GenericCRUD
             if (!Validators[nameof(GetById)].Validate(param, ref errors))
                 return new ApiResult<IEnumerable<T>>() { Result = null, Successful = false, Errors = errors };
 
-            var entities = await _repo.FindAllAsync(x => param.EntityIds.Contains(x.Id));
+            var entities = await DbReadSelector(param, _repo);
 
             return new ApiResult<IEnumerable<T>>(entities);
         }
