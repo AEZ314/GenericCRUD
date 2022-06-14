@@ -125,11 +125,11 @@ namespace GenericCRUD
             if (item != null)
                 return true;
             
-            var error = new ValidationError(item.GetType().Name, "Argument can't be null.");
+            var error = new ValidationError(typeof(J).Name, "Argument can't be null.");
             errors.Add(error);
             
             if (@throw)
-                throw new ArgumentNullException(item.GetType().Name);
+                throw new ArgumentNullException(typeof(J).Name);
             
             return false;
         }
@@ -138,11 +138,11 @@ namespace GenericCRUD
             if (items != null && items.Count() > 0)
                 return true;
             
-            var error = new ValidationError(items.GetType().Name, "Argument can't be null or empty.");
+            var error = new ValidationError(typeof(J).Name, "Argument can't be null or empty.");
             errors.Add(error);
             
             if (@throw)
-                throw new ArgumentException("Argument can't be null or empty.", items.GetType().Name);
+                throw new ArgumentException("Argument can't be null or empty.", typeof(J).Name);
 
             return false;
         }
