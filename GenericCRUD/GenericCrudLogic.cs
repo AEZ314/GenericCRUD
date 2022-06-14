@@ -13,7 +13,8 @@ namespace GenericCRUD
     {
         public Dictionary<string, Validator<T>> Validators { get; set; } = new();
 
-        public Func<CrudParam<T>, IDapperRepository<T>, Task<IEnumerable<T>>> DbReadSelector = (param, repo) => repo.FindAllAsync(x => param.EntityIds.Contains(x.Id));
+        public Func<CrudParam<T>, IDapperRepository<T>, Task<IEnumerable<T>>> DbReadSelector { get; set; } = (param, repo) => repo.FindAllAsync(x => param.EntityIds.Contains(x.Id));
+
         protected readonly IDapperRepository<T> _repo;
 
 
