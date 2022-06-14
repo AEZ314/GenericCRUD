@@ -35,6 +35,8 @@ namespace GenericCRUD
             create.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
                 IsNotNull(param, ref errors, @throw:true) && 
                 IsNotNull(param.Requester, ref errors, @throw:true) &&
+                IsNotNull(param.Requester.Identity, ref errors, @throw:true) &&
+                IsNotNull(param.Requester.Identity.Name, ref errors, @throw:true) &&
                 IsNotNull(param.Entity, ref errors);
             
             create.EntityValidation = FluentValidator == null ? 
@@ -52,6 +54,8 @@ namespace GenericCRUD
             read.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
                 IsNotNull(param, ref errors, @throw:true) &&
                 IsNotNull(param.Requester, ref errors, @throw:true) &&
+                IsNotNull(param.Requester.Identity, ref errors, @throw:true) &&
+                IsNotNull(param.Requester.Identity.Name, ref errors, @throw:true) &&
                 IsNotNullEmpty(param.EntityIds, ref errors);
             
             read.EntityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
@@ -67,6 +71,8 @@ namespace GenericCRUD
             update.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
                 IsNotNull(param, ref errors, @throw:true) &&
                 IsNotNull(param.Requester, ref errors, @throw:true) &&
+                IsNotNull(param.Requester.Identity, ref errors, @throw:true) &&
+                IsNotNull(param.Requester.Identity.Name, ref errors, @throw:true) &&
                 IsNotNull(param.Entity, ref errors) &&
                 IsNotNull(param.Entity.Id, ref errors);
             
@@ -85,6 +91,8 @@ namespace GenericCRUD
             partial.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
                 IsNotNull(param, ref errors, @throw:true) &&
                 IsNotNull(param.Requester, ref errors, @throw:true) &&
+                IsNotNull(param.Requester.Identity, ref errors, @throw:true) &&
+                IsNotNull(param.Requester.Identity.Name, ref errors, @throw:true) &&
                 IsNotNullEmpty(param.EntityIds, ref errors) &&
                 IsNotNull(param.Patch, ref errors);
 
@@ -100,6 +108,8 @@ namespace GenericCRUD
             delete.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
                 IsNotNull(param, ref errors, @throw:true) &&
                 IsNotNull(param.Requester, ref errors, @throw:true) &&
+                IsNotNull(param.Requester.Identity, ref errors, @throw:true) &&
+                IsNotNull(param.Requester.Identity.Name, ref errors, @throw:true) &&
                 IsNotNullEmpty(param.EntityIds, ref errors);
 
             delete.EntityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
