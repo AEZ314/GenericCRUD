@@ -60,8 +60,8 @@ namespace GenericCRUD
             update.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
                 IsNotNull(param, ref errors, @throw:true) &&
                 IsNotNull(param.Requester, ref errors, @throw:true) &&
-                IsNotNull(param.Entity, ref errors);
-                // ** Should I null check param.Entity.Id?
+                IsNotNull(param.Entity, ref errors) &&
+                IsNotNull(param.Entity.Id, ref errors);
             
             update.EntityValidation = Validator<T>.DataAnnotationEntityValidation;
             
@@ -76,9 +76,8 @@ namespace GenericCRUD
             partial.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
                 IsNotNull(param, ref errors, @throw:true) &&
                 IsNotNull(param.Requester, ref errors, @throw:true) &&
-                IsNotNull(param.Entity, ref errors) &&
+                IsNotNullEmpty(param.EntityIds, ref errors) &&
                 IsNotNull(param.Patch, ref errors);
-            // ** Should I null check param.Entity.Id?
             
             partial.EntityValidation = Validator<T>.DataAnnotationEntityValidation;
             
@@ -106,22 +105,25 @@ namespace GenericCRUD
         {
             if (item != null)
                 return true;
+            
             var ex = new ArgumentNullException(item.GetType().Name);
+            errors.Add(ex);
+            
             if (@throw)
                 throw ex;
             
-            errors.Add(ex);
             return false;
         }
         protected bool IsNotNullEmpty<J>(IEnumerable<J> items, ref List<Exception> errors, bool @throw = false)
         {
             if (items != null && items.Count() > 0)
                 return true;
+            
             var ex = new ArgumentException("Argument can't be null or empty.", items.GetType().Name);
+            errors.Add(ex);
+            
             if (@throw)
                 throw ex;
-            
-            errors.Add(ex);
 
             return false;
         }
@@ -129,11 +131,12 @@ namespace GenericCRUD
         {
             if (integer >= inclusiveMin || integer <= inclusiveMax)
                 return true;
+
             var ex = new ArgumentException($"{nameof(integer)} ({integer}) isn't inclusively between {inclusiveMin} and {inclusiveMax}.", nameof(integer));
+            errors.Add(ex);
+            
             if (@throw)
                 throw ex;
-            
-            errors.Add(ex);
 
             return false;
         }
@@ -162,18 +165,25 @@ namespace GenericCRUD
             return new ApiResult<IEnumerable<T>>(entities);
         }
 
+        // ** Are the Update/PartialUpdate Actions flexible and secure enough?
+        
         public async Task<ApiResult<bool?>> Update(CrudParam<T> param)
         {
             var errors = new List<Exception>();
             if (!Validators[nameof(Update)].Validate(param, ref errors))
                 return new ApiResult<bool?>() { Result = null, Successful = false, Errors = errors };
-
-            throw new System.NotImplementedException();
+            
+            var success = await _repo.UpdateAsync(param.Entity);
+            
+            return new ApiResult<bool?>(success);
         }
 
         public async Task<ApiResult<bool?>> PartialUpdate(CrudParam<T> param)
         {
-            throw new System.NotImplementedException();
+            var original = await _repo.FindByIdAsync(param.EntityIds.First());
+            param.Patch.ApplyTo(original);
+            param.Entity = original;
+            return await Update(param);
         }
 
         public async Task<ApiResult<bool?>> Delete(CrudParam<T> param)

@@ -16,7 +16,7 @@ namespace GenericCRUD
         public ApiResult(T result) 
         { 
             Result = result; 
-            Successful = true;
+            Successful = result != null;
         }
         
         public override string ToString()
