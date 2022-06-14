@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace GenericCRUD
@@ -9,7 +10,7 @@ namespace GenericCRUD
     {
         public T Result { get; set; }
         public bool Successful { get; set; }
-        public List<Exception> Errors { get; set; } = new();
+        public List<ValidationError> Errors { get; set; } = new();
         public List<string> Messages { get; set; } = new();
 
         public ApiResult() { }

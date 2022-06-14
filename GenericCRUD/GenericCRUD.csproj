@@ -8,10 +8,10 @@
     <ItemGroup>
       <PackageReference Include="FluentValidation" Version="11.0.3" />
       <PackageReference Include="MicroOrm.Dapper.Repositories" Version="1.22.0" />
-      <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="5.0.17" />
+      <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="7.0.0-preview.4.22251.1" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.2-beta1" />
-      <PackageReference Include="System.ComponentModel.Annotations" Version="6.0.0-preview.4.21253.7" />
+      <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     </ItemGroup>
 
 </Project>

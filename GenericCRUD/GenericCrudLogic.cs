@@ -27,14 +27,14 @@ namespace GenericCRUD
             
             var create = Validators[nameof(Create)] = new Validator<T>();
             
-            create.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
+            create.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
                 IsNotNull(param, ref errors, @throw:true) && 
                 IsNotNull(param.Requester, ref errors, @throw:true) &&
                 IsNotNull(param.Entity, ref errors);
             
             create.EntityValidation = Validator<T>.DataAnnotationEntityValidation;
             
-            create.AuthorityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
+            create.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
             
             #endregion
 
@@ -42,14 +42,14 @@ namespace GenericCRUD
             
             var read = Validators[nameof(GetById)] = new Validator<T>();
 
-            read.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
+            read.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
                 IsNotNull(param, ref errors, @throw:true) &&
                 IsNotNull(param.Requester, ref errors, @throw:true) &&
                 IsNotNullEmpty(param.EntityIds, ref errors);
             
-            read.EntityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
+            read.EntityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
             
-            read.AuthorityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
+            read.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
             
             #endregion
             
@@ -57,7 +57,7 @@ namespace GenericCRUD
             
             var update = Validators[nameof(Update)] = new Validator<T>();
             
-            update.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
+            update.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
                 IsNotNull(param, ref errors, @throw:true) &&
                 IsNotNull(param.Requester, ref errors, @throw:true) &&
                 IsNotNull(param.Entity, ref errors) &&
@@ -65,7 +65,7 @@ namespace GenericCRUD
             
             update.EntityValidation = Validator<T>.DataAnnotationEntityValidation;
             
-            update.AuthorityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
+            update.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
             
             #endregion
 
@@ -73,7 +73,7 @@ namespace GenericCRUD
             
             var partial = Validators[nameof(PartialUpdate)] = new Validator<T>();
             
-            partial.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
+            partial.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
                 IsNotNull(param, ref errors, @throw:true) &&
                 IsNotNull(param.Requester, ref errors, @throw:true) &&
                 IsNotNullEmpty(param.EntityIds, ref errors) &&
@@ -81,62 +81,62 @@ namespace GenericCRUD
             
             partial.EntityValidation = Validator<T>.DataAnnotationEntityValidation;
             
-            partial.AuthorityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
+            partial.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
             
             #endregion
 
             #region Delete
             
             var delete = Validators[nameof(Delete)] = new Validator<T>();
-            delete.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
+            delete.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
                 IsNotNull(param, ref errors, @throw:true) &&
                 IsNotNull(param.Requester, ref errors, @throw:true) &&
                 IsNotNullEmpty(param.EntityIds, ref errors);
 
-            delete.EntityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
+            delete.EntityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
 
-            delete.AuthorityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
+            delete.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
 
             #endregion
         }
         
         // Set @throw true if API is responsible of error
-        protected bool IsNotNull<J>(J item, ref List<Exception> errors, bool @throw = false)
+        protected bool IsNotNull<J>(J item, ref List<ValidationError> errors, bool @throw = false)
         {
             if (item != null)
                 return true;
             
-            var ex = new ArgumentNullException(item.GetType().Name);
-            errors.Add(ex);
+            var error = new ValidationError(item.GetType().Name, "Argument can't be null.");
+            errors.Add(error);
             
             if (@throw)
-                throw ex;
+                throw new ArgumentNullException(item.GetType().Name);
             
             return false;
         }
-        protected bool IsNotNullEmpty<J>(IEnumerable<J> items, ref List<Exception> errors, bool @throw = false)
+        protected bool IsNotNullEmpty<J>(IEnumerable<J> items, ref List<ValidationError> errors, bool @throw = false)
         {
             if (items != null && items.Count() > 0)
                 return true;
             
-            var ex = new ArgumentException("Argument can't be null or empty.", items.GetType().Name);
-            errors.Add(ex);
+            var error = new ValidationError(items.GetType().Name, "Argument can't be null or empty.");
+            errors.Add(error);
             
             if (@throw)
-                throw ex;
+                throw new ArgumentException("Argument can't be null or empty.", items.GetType().Name);
 
             return false;
         }
-        protected bool IsInRange(ref List<Exception> errors, int integer, int inclusiveMin = int.MinValue, int inclusiveMax = int.MaxValue, bool @throw = false)
+        protected bool IsInRange(ref List<ValidationError> errors, int integer, int inclusiveMin = int.MinValue, int inclusiveMax = int.MaxValue, bool @throw = false)
         {
             if (integer >= inclusiveMin || integer <= inclusiveMax)
                 return true;
 
-            var ex = new ArgumentException($"{nameof(integer)} ({integer}) isn't inclusively between {inclusiveMin} and {inclusiveMax}.", nameof(integer));
-            errors.Add(ex);
+            var error = new ValidationError(nameof(integer), $"{nameof(integer)} ({integer}) isn't inclusively between {inclusiveMin} and {inclusiveMax}.");
+            errors.Add(error);
             
             if (@throw)
-                throw ex;
+                throw new ArgumentException($"{nameof(integer)} ({integer}) isn't inclusively between {inclusiveMin} and {inclusiveMax}.", nameof(integer));
 
             return false;
         }
@@ -145,7 +145,7 @@ namespace GenericCRUD
         
         public async Task<ApiResult<int?>> Create(CrudParam<T> param)
         {
-            var errors = new List<Exception>();
+            var errors = new List<ValidationError>();
             if (!Validators[nameof(Create)].Validate(param, ref errors))
                 return new ApiResult<int?>() { Result = null, Successful = false, Errors = errors };
 
@@ -156,7 +156,7 @@ namespace GenericCRUD
 
         public async Task<ApiResult<IEnumerable<T>>> GetById(CrudParam<T> param)
         {
-            var errors = new List<Exception>();
+            var errors = new List<ValidationError>();
             if (!Validators[nameof(GetById)].Validate(param, ref errors))
                 return new ApiResult<IEnumerable<T>>() { Result = null, Successful = false, Errors = errors };
 
@@ -169,7 +169,7 @@ namespace GenericCRUD
         
         public async Task<ApiResult<bool?>> Update(CrudParam<T> param)
         {
-            var errors = new List<Exception>();
+            var errors = new List<ValidationError>();
             if (!Validators[nameof(Update)].Validate(param, ref errors))
                 return new ApiResult<bool?>() { Result = null, Successful = false, Errors = errors };
             
@@ -188,7 +188,7 @@ namespace GenericCRUD
 
         public async Task<ApiResult<bool?>> Delete(CrudParam<T> param)
         {
-            var errors = new List<Exception>();
+            var errors = new List<ValidationError>();
             if (!Validators[nameof(Delete)].Validate(param, ref errors))
                 return new ApiResult<bool?>() { Result = null, Successful = false, Errors = errors };
 
