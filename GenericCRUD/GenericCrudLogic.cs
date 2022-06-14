@@ -28,8 +28,8 @@ namespace GenericCRUD
             var create = Validators[nameof(Create)] = new Validator<T>();
             
             create.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
-                IsNotNull(param, ref errors) && // ** If it's null, it's an API mistake. Shouldn't return to client.
-                IsNotNull(param.Requester, ref errors) &&
+                IsNotNull(param, ref errors, @throw:true) && 
+                IsNotNull(param.Requester, ref errors, @throw:true) &&
                 IsNotNull(param.Entity, ref errors);
             
             create.EntityValidation = Validator<T>.DataAnnotationEntityValidation;
@@ -43,8 +43,8 @@ namespace GenericCRUD
             var read = Validators[nameof(GetById)] = new Validator<T>();
 
             read.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
-                IsNotNull(param, ref errors) &&
-                IsNotNull(param.Requester, ref errors) &&
+                IsNotNull(param, ref errors, @throw:true) &&
+                IsNotNull(param.Requester, ref errors, @throw:true) &&
                 IsNotNullEmpty(param.EntityIds, ref errors);
             
             read.EntityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
@@ -58,8 +58,8 @@ namespace GenericCRUD
             var update = Validators[nameof(Update)] = new Validator<T>();
             
             update.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
-                IsNotNull(param, ref errors) &&
-                IsNotNull(param.Requester, ref errors) &&
+                IsNotNull(param, ref errors, @throw:true) &&
+                IsNotNull(param.Requester, ref errors, @throw:true) &&
                 IsNotNull(param.Entity, ref errors);
                 // ** Should I null check param.Entity.Id?
             
@@ -74,8 +74,8 @@ namespace GenericCRUD
             var partial = Validators[nameof(PartialUpdate)] = new Validator<T>();
             
             partial.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
-                IsNotNull(param, ref errors) &&
-                IsNotNull(param.Requester, ref errors) &&
+                IsNotNull(param, ref errors, @throw:true) &&
+                IsNotNull(param.Requester, ref errors, @throw:true) &&
                 IsNotNull(param.Entity, ref errors) &&
                 IsNotNull(param.Patch, ref errors);
             // ** Should I null check param.Entity.Id?
@@ -90,8 +90,8 @@ namespace GenericCRUD
             
             var delete = Validators[nameof(Delete)] = new Validator<T>();
             delete.ParameterValidation = (CrudParam<T> param, ref List<Exception> errors) =>
-                IsNotNull(param, ref errors) &&
-                IsNotNull(param.Requester, ref errors) &&
+                IsNotNull(param, ref errors, @throw:true) &&
+                IsNotNull(param.Requester, ref errors, @throw:true) &&
                 IsNotNullEmpty(param.EntityIds, ref errors);
 
             delete.EntityValidation = (CrudParam<T> param, ref List<Exception> errors) => true;
@@ -101,30 +101,39 @@ namespace GenericCRUD
             #endregion
         }
         
-        
-        protected bool IsNotNull<J>(J item, ref List<Exception> errors)
+        // Set @throw true if API is responsible of error
+        protected bool IsNotNull<J>(J item, ref List<Exception> errors, bool @throw = false)
         {
             if (item != null)
                 return true;
+            var ex = new ArgumentNullException(item.GetType().Name);
+            if (@throw)
+                throw ex;
             
-            errors.Add(new ArgumentNullException(item.GetType().Name));
+            errors.Add(ex);
             return false;
         }
-        protected bool IsNotNullEmpty<J>(IEnumerable<J> items, ref List<Exception> errors)
+        protected bool IsNotNullEmpty<J>(IEnumerable<J> items, ref List<Exception> errors, bool @throw = false)
         {
             if (items != null && items.Count() > 0)
                 return true;
-
-            errors.Add(new ArgumentException("Argument can't be null or empty.", items.GetType().Name));
+            var ex = new ArgumentException("Argument can't be null or empty.", items.GetType().Name);
+            if (@throw)
+                throw ex;
+            
+            errors.Add(ex);
 
             return false;
         }
-        protected bool IsInRange(ref List<Exception> errors, int integer, int inclusiveMin = int.MinValue, int inclusiveMax = int.MaxValue)
+        protected bool IsInRange(ref List<Exception> errors, int integer, int inclusiveMin = int.MinValue, int inclusiveMax = int.MaxValue, bool @throw = false)
         {
             if (integer >= inclusiveMin || integer <= inclusiveMax)
                 return true;
-
-            errors.Add(new ArgumentException($"{nameof(integer)} ({integer}) isn't inclusively between {inclusiveMin} and {inclusiveMax}.", nameof(integer)));
+            var ex = new ArgumentException($"{nameof(integer)} ({integer}) isn't inclusively between {inclusiveMin} and {inclusiveMax}.", nameof(integer));
+            if (@throw)
+                throw ex;
+            
+            errors.Add(ex);
 
             return false;
         }
