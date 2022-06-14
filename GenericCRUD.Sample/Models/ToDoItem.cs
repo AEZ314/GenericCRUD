@@ -10,7 +10,10 @@ namespace GenericCRUD.Sample.Models
     {
         [Identity, Key]
         public int Id { get; set; }
+        
         [IgnoreUpdate]
         public int ListId { get; set; }
+
+        public string Text { get; set; }
     }
 }

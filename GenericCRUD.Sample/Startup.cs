@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using GenericCRUD.Sample.Models;
+using MicroOrm.Dapper.Repositories;
 using MicroOrm.Dapper.Repositories.Config;
 using MicroOrm.Dapper.Repositories.SqlGenerator;
 using Microsoft.AspNetCore.Builder;
@@ -31,12 +33,48 @@ namespace GenericCRUD.Sample
         {
             MicroOrmConfig.SqlProvider = SqlProvider.MySQL;
             services.AddSingleton(typeof(ISqlGenerator<>), typeof(SqlGenerator<>));
-            services.AddTransient<IDbConnection>(x => new MySqlConnection(Configuration.GetConnectionString("main")));
+            services.AddTransient<IDbConnection>(sp => new MySqlConnection(Configuration.GetConnectionString("main")));
 
+            
+            
+            services.AddTransient<IDapperRepository<ToDoItem>>(sp => new DapperRepository<ToDoItem>(sp.GetService<IDbConnection>()));
+            services.AddTransient<IGenericCrudLogic<ToDoItem>>(sp => new GenericCrudLogic<ToDoItem>(sp.GetService<IDapperRepository<ToDoItem>>()));
+
+            services.AddTransient<IDapperRepository<ToDoList>>(sp => new DapperRepository<ToDoList>(sp.GetService<IDbConnection>()));
+            services.AddTransient<IGenericCrudLogic<ToDoList>>(sp => new GenericCrudLogic<ToDoList>(sp.GetService<IDapperRepository<ToDoList>>()));
+
+            
+            
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "GenericCRUD.Sample", Version = "v1"});
+                
+                // Custom naming to later enable generics
+                c.CustomSchemaIds(t => 
+                {
+                    string iter(Type t)
+                    {
+                        if (!t.IsGenericType)
+                            return t.Name;
+                        
+                        var generics = t.GetGenericArguments();
+                        
+                        var res = t.Name.Substring(0, t.Name.IndexOf("`")) + "<";
+
+                        foreach (var generic in generics)
+                        {
+                            res += iter(generic);
+
+                            if (generic != generics.Last())
+                                res += ",";
+                        }
+                        
+                        return res + ">";
+                    }
+                    
+                    return iter(t);
+                });
             });
         }
 

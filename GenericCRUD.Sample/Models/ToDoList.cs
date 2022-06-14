@@ -11,9 +11,13 @@ namespace GenericCRUD.Sample.Models
     {
         [Identity, Key]
         public int Id { get; set; }
+        
         [IgnoreUpdate]
         public int OwnerId { get; set; }
+
+        public string Name { get; set; }
+        
         [LeftJoin("todoitems", "Id", "ListId")]
-        public List<ToDoItem> Items { get; set; } // How to map this with minimal effort?
+        public List<ToDoItem> Items { get; set; }
     }
 }

@@ -11,13 +11,14 @@ namespace GenericCRUD.Sample.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ToDoItemController : GenericCrudBaseController<ToDoItem>
+    public class ToDoListController : GenericCrudBaseController<ToDoList>
     {
-        private readonly IGenericCrudLogic<ToDoItem> _logic;
+        private readonly IGenericCrudLogic<ToDoList> _logic;
     
-        public ToDoItemController(IGenericCrudLogic<ToDoItem> logic) : base(logic)
+        public ToDoListController(IGenericCrudLogic<ToDoList> logic) : base(logic)
         {
             _logic = logic;
+            logic.DbReadSelector = (param, repo) => repo.FindAllAsync<ToDoItem>(x => param.EntityIds.Contains(x.Id), x => x.Items);
         }
     }
 }
