@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Dapper;
+using FluentValidation;
 
 namespace GenericCRUD
 {
@@ -31,6 +32,17 @@ namespace GenericCRUD
             }
             
             return isValid;
+        }
+        public static bool FluentEntityValidation(CrudParam<T> param, ref List<ValidationError> errors, AbstractValidator<T> validator)
+        {
+            var validationResult = validator.Validate(param.Entity);
+
+            foreach (var error in validationResult.Errors)
+            {
+                errors.Add(new ValidationError(error.PropertyName, error.ErrorMessage));
+            }
+            
+            return validationResult.IsValid;
         }
     }
 }

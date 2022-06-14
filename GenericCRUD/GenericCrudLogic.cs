@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
+using FluentValidation;
 using MicroOrm.Dapper.Repositories;
 using Microsoft.AspNetCore.JsonPatch;
 
@@ -12,14 +13,15 @@ namespace GenericCRUD
     public class GenericCrudLogic<T> : IGenericCrudLogic<T> where T : class, IIdEntity
     {
         public Dictionary<string, Validator<T>> Validators { get; set; } = new();
-
+        public AbstractValidator<T> FluentValidator { get; set; }
         public Func<CrudParam<T>, IDapperRepository<T>, Task<IEnumerable<T>>> DbReadSelector { get; set; } = (param, repo) => repo.FindAllAsync(x => param.EntityIds.Contains(x.Id));
 
         protected readonly IDapperRepository<T> _repo;
 
 
-        public GenericCrudLogic(IDapperRepository<T> repo)
+        public GenericCrudLogic(IDapperRepository<T> repo, AbstractValidator<T> fluentValidator = null)
         {
+            FluentValidator = fluentValidator;
             _repo = repo;
             SetupDefaultValidators();
         }
@@ -35,7 +37,9 @@ namespace GenericCRUD
                 IsNotNull(param.Requester, ref errors, @throw:true) &&
                 IsNotNull(param.Entity, ref errors);
             
-            create.EntityValidation = Validator<T>.DataAnnotationEntityValidation;
+            create.EntityValidation = FluentValidator == null ? 
+                Validator<T>.DataAnnotationEntityValidation :
+                (CrudParam<T> x, ref List<ValidationError> y) => Validator<T>.FluentEntityValidation(x, ref y, FluentValidator);
             
             create.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
             
@@ -66,7 +70,9 @@ namespace GenericCRUD
                 IsNotNull(param.Entity, ref errors) &&
                 IsNotNull(param.Entity.Id, ref errors);
             
-            update.EntityValidation = Validator<T>.DataAnnotationEntityValidation;
+            update.EntityValidation = FluentValidator == null ? 
+                Validator<T>.DataAnnotationEntityValidation :
+                (CrudParam<T> x, ref List<ValidationError> y) => Validator<T>.FluentEntityValidation(x, ref y, FluentValidator);
             
             update.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
             
@@ -81,8 +87,8 @@ namespace GenericCRUD
                 IsNotNull(param.Requester, ref errors, @throw:true) &&
                 IsNotNullEmpty(param.EntityIds, ref errors) &&
                 IsNotNull(param.Patch, ref errors);
-            
-            partial.EntityValidation = Validator<T>.DataAnnotationEntityValidation;
+
+            partial.EntityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
             
             partial.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
             
