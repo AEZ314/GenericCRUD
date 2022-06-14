@@ -7,7 +7,7 @@
     <ItemGroup>
         <PackageReference Include="MicroOrm.Dapper.Repositories" Version="1.22.0" />
         <PackageReference Include="MySqlConnector" Version="2.1.10" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.1" />
     </ItemGroup>
 
     <ItemGroup>

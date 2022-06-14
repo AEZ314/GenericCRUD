@@ -49,7 +49,6 @@ namespace GenericCRUD.Sample
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "GenericCRUD.Sample", Version = "v1"});
-                
                 // Custom naming to later enable generics
                 c.CustomSchemaIds(t => 
                 {
@@ -84,11 +83,17 @@ namespace GenericCRUD.Sample
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "GenericCRUD.Sample v1"));
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "GenericCRUD.Sample v1");
+                    c.InjectStylesheet("/SwaggerDark.css");
+                });
             }
 
             app.UseHttpsRedirection();
 
+            app.UseStaticFiles();
+            
             app.UseRouting();
 
             app.UseAuthorization();
