@@ -16,13 +16,13 @@ namespace GenericCRUD
         public AbstractValidator<T> FluentValidator { get; set; }
         public Func<CrudParam<T>, IDapperRepository<T>, Task<IEnumerable<T>>> DbReadSelector { get; set; } = (param, repo) => repo.FindAllAsync(x => param.EntityIds.Contains(x.Id));
 
-        protected readonly IDapperRepository<T> _repo;
+        protected readonly IDapperRepository<T> _genericRepo;
 
 
-        public GenericCrudLogic(IDapperRepository<T> repo, AbstractValidator<T> fluentValidator = null)
+        public GenericCrudLogic(IDapperRepository<T> genericRepo, AbstractValidator<T> fluentValidator = null)
         {
             FluentValidator = fluentValidator;
-            _repo = repo;
+            _genericRepo = genericRepo;
             SetupDefaultValidators();
         }
 
@@ -162,56 +162,59 @@ namespace GenericCRUD
         
         
         
-        public async Task<ApiResult<int?>> Create(CrudParam<T> param)
+        public virtual async Task<ApiResult<int?>> Create(CrudParam<T> param)
         {
             var errors = new List<ValidationError>();
             if (!Validators[nameof(Create)].Validate(param, ref errors))
                 return new ApiResult<int?>() { Result = null, Successful = false, Errors = errors };
 
-            await _repo.InsertAsync(param.Entity);
+            await _genericRepo.InsertAsync(param.Entity);
 
             return new ApiResult<int?>(param.Entity.Id);
         }
 
-        public async Task<ApiResult<IEnumerable<T>>> GetById(CrudParam<T> param)
+        public virtual async Task<ApiResult<IEnumerable<T>>> GetById(CrudParam<T> param)
         {
             var errors = new List<ValidationError>();
             if (!Validators[nameof(GetById)].Validate(param, ref errors))
                 return new ApiResult<IEnumerable<T>>() { Result = null, Successful = false, Errors = errors };
 
-            var entities = await DbReadSelector(param, _repo);
+            var entities = await DbReadSelector(param, _genericRepo);
 
             return new ApiResult<IEnumerable<T>>(entities);
         }
 
         // ** Are the Update/PartialUpdate Actions flexible and secure enough?
         
-        public async Task<ApiResult<bool?>> Update(CrudParam<T> param)
+        public virtual  async Task<ApiResult<bool?>> Update(CrudParam<T> param)
         {
             var errors = new List<ValidationError>();
             if (!Validators[nameof(Update)].Validate(param, ref errors))
                 return new ApiResult<bool?>() { Result = null, Successful = false, Errors = errors };
             
-            var success = await _repo.UpdateAsync(param.Entity);
+            var success = await _genericRepo.UpdateAsync(param.Entity);
             
             return new ApiResult<bool?>(success);
         }
 
-        public async Task<ApiResult<bool?>> PartialUpdate(CrudParam<T> param)
+        public virtual async Task<ApiResult<bool?>> PartialUpdate(CrudParam<T> param)
         {
-            var original = await _repo.FindByIdAsync(param.EntityIds.First());
+            var errors = new List<ValidationError>();
+            if (!Validators[nameof(PartialUpdate)].Validate(param, ref errors))
+                return new ApiResult<bool?>() { Result = null, Successful = false, Errors = errors };
+            
+            var original = await _genericRepo.FindByIdAsync(param.EntityIds.First());
             param.Patch.ApplyTo(original);
             param.Entity = original;
             return await Update(param);
         }
-
-        public async Task<ApiResult<bool?>> Delete(CrudParam<T> param)
+        public virtual  async Task<ApiResult<bool?>> Delete(CrudParam<T> param)
         {
             var errors = new List<ValidationError>();
             if (!Validators[nameof(Delete)].Validate(param, ref errors))
                 return new ApiResult<bool?>() { Result = null, Successful = false, Errors = errors };
 
-            var success = await _repo.DeleteAsync(x => param.EntityIds.Contains(x.Id));
+            var success = await _genericRepo.DeleteAsync(x => param.EntityIds.Contains(x.Id));
 
             return new ApiResult<bool?>(success);        
         }

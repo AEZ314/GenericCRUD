@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Dapper;
 using FluentValidation;
+using MicroOrm.Dapper.Repositories;
 
 namespace GenericCRUD
 {
@@ -44,5 +45,40 @@ namespace GenericCRUD
             
             return validationResult.IsValid;
         }
+        
+        // Basic auth validation for Read & Delete
+        public static bool RDValidation<J>(CrudParam<J> param, ref List<ValidationError> errors, IDapperRepository<J> repo) where J : class, IIdEntity, IOwnedEntity
+        {
+            if(!int.TryParse(param.Requester.Identity.Name, out var requesterId))
+            {
+                errors.Add(new ValidationError(nameof(param.Requester.Identity.Name), "Name must be an integer."));
+                return false;
+            }
+            if (repo.FindAll(x => param.EntityIds.Contains(x.Id) && x.OwnerId == requesterId).Count() != param.EntityIds.Count())
+            {
+                errors.Add(new ValidationError(nameof(param.EntityIds), "You can only retrieve entities owned by you."));
+                return false;
+            }
+
+            return true;
+        }
+
+        // Basic auth validation for Update & PartialUpdate (Partial Update already uses Update's validation method by default)
+        public static bool UValidation<J>(CrudParam<J> param, ref List<ValidationError> errors, IDapperRepository<J> repo) where J : class, IIdEntity, IOwnedEntity
+        {
+            if(!int.TryParse(param.Requester.Identity.Name, out var requesterId))
+            {
+                errors.Add(new ValidationError(nameof(param.Requester.Identity.Name), "Name must be an integer."));
+                return false;
+            }
+            if (repo.FindById(param.Entity.Id).OwnerId != requesterId)
+            {
+                errors.Add(new ValidationError(nameof(param.Requester.Identity.Name), "This action can be performed only on entities owned by you."));
+                return false;
+            }
+
+            return true;
+        }
+
     }
 }
