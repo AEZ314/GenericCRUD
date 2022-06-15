@@ -7,7 +7,7 @@ using MicroOrm.Dapper.Repositories.Attributes.Joins;
 namespace GenericCRUD.Sample.Models
 {
     [Table("todolists")]
-    public class ToDoList : IIdEntity
+    public class ToDoList : IIdEntity, IOwnedEntity
     {
         [Identity, Key]
         public int Id { get; set; }

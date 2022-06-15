@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using GenericCRUD.Sample.Logics;
 using GenericCRUD.Sample.Models;
 using MicroOrm.Dapper.Repositories;
 using MicroOrm.Dapper.Repositories.Config;
@@ -41,11 +42,29 @@ namespace GenericCRUD.Sample
             services.AddTransient<IGenericCrudLogic<ToDoItem>>(sp => new GenericCrudLogic<ToDoItem>(sp.GetService<IDapperRepository<ToDoItem>>()));
 
             services.AddTransient<IDapperRepository<ToDoList>>(sp => new DapperRepository<ToDoList>(sp.GetService<IDbConnection>()));
-            services.AddTransient<IGenericCrudLogic<ToDoList>>(sp => new GenericCrudLogic<ToDoList>(sp.GetService<IDapperRepository<ToDoList>>()));
+            services.AddTransient<ToDoListLogic>(sp => new ToDoListLogic(sp.GetService<IDapperRepository<ToDoList>>()));
 
+
+
+            services.AddAuthorization();
+            services.AddAuthentication(opt =>
+            {
+                opt.DefaultAuthenticateScheme = "cookie";
+                opt.DefaultChallengeScheme= "cookie";
+                opt.DefaultSignInScheme = "cookie";
+                opt.DefaultSignOutScheme = "cookie";
+            })
+                .AddCookie("cookie", opt =>
+                {
+                    opt.Cookie.Name = "AuthCookie";
+                    opt.LoginPath = "/auth/login";
+                    opt.LogoutPath = "/auth/logout";
+                });
+            
             
             
             services.AddControllers();
+            services.AddMvc();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "GenericCRUD.Sample", Version = "v1"});
@@ -93,12 +112,18 @@ namespace GenericCRUD.Sample
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();
-            
+
             app.UseRouting();
+            
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
         }
     }
 }

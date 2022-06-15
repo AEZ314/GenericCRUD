@@ -15,8 +15,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Logics" />
       <Folder Include="Repos" />
     </ItemGroup>
-
 </Project>
