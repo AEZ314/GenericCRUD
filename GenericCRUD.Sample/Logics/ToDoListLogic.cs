@@ -12,7 +12,7 @@ namespace GenericCRUD.Sample.Logics
     {
         public ToDoListLogic(IDapperRepository<ToDoList> genericRepo) : base(genericRepo)
         {
-            DbReadSelector = (param, repo) => repo.FindAllAsync<ToDoItem>(x => param.EntityIds.Contains(x.Id), x => x.Items);
+            DbReadChildSelector = (exp, repo) => repo.FindAllAsync<ToDoItem>(exp, x => x.Items);
             
             Validators[nameof(GetById)].AuthorityValidation = (CrudParam<ToDoList> param, ref List<ValidationError> errors) => Validator<ToDoList>.RDValidation(param, ref errors, _genericRepo);
             Validators[nameof(Update)].AuthorityValidation = (CrudParam<ToDoList> param, ref List<ValidationError> errors) => Validator<ToDoList>.UValidation(param, ref errors, _genericRepo);
@@ -23,6 +23,11 @@ namespace GenericCRUD.Sample.Logics
         {
             param.Entity.OwnerId = int.Parse(param.Requester.Identity.Name);
             return base.Create(param);
+        }
+        
+        public Task<ApiResult<IEnumerable<ToDoList>>> GetByOwnerId(CrudParam<ToDoList> param)
+        {
+            return GenericCrudLogic<ToDoList>.GetByOwnerId(param, this, _genericRepo);
         }
     }
 }

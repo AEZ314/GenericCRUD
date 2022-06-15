@@ -16,11 +16,21 @@ namespace GenericCRUD.Sample.Controllers
     [Route("[controller]")]
     public class ToDoListController : GenericCrudBaseController<ToDoList>
     {
-        private readonly IGenericCrudLogic<ToDoList> _logic;
+        private readonly ToDoListLogic _logic;
     
         public ToDoListController(ToDoListLogic logic) : base(logic)
         {
             _logic = logic;
+        }
+        
+        [Route("[Action]")]
+        [HttpGet]
+        public Task<ApiResult<IEnumerable<ToDoList>>> GetByOwnerId()
+        {
+            return _logic.GetByOwnerId(new CrudParam<ToDoList>()
+            {
+                Requester = HttpContext.User
+            });
         }
     }
 }

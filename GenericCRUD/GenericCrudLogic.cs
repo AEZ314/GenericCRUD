@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Dapper;
 using FluentValidation;
@@ -14,7 +15,7 @@ namespace GenericCRUD
     {
         public Dictionary<string, Validator<T>> Validators { get; set; } = new();
         public AbstractValidator<T> FluentValidator { get; set; }
-        public Func<CrudParam<T>, IDapperRepository<T>, Task<IEnumerable<T>>> DbReadSelector { get; set; } = (param, repo) => repo.FindAllAsync(x => param.EntityIds.Contains(x.Id));
+        public Func<Expression<Func<T, bool>>, IDapperRepository<T>, Task<IEnumerable<T>>> DbReadChildSelector { get; set; } = (exp, repo) => repo.FindAllAsync(exp);
 
         protected readonly IDapperRepository<T> _genericRepo;
 
@@ -117,6 +118,22 @@ namespace GenericCRUD
             delete.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
 
             #endregion
+            
+            #region GetByOwnerId
+            
+            var byOwnerId = Validators[nameof(GetByOwnerId)] = new Validator<T>();
+
+            byOwnerId.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
+                IsNotNull(param, ref errors, @throw:true) &&
+                IsNotNull(param.Requester, ref errors, @throw:true) &&
+                IsNotNull(param.Requester.Identity, ref errors, @throw:true) &&
+                IsNotNull(param.Requester.Identity.Name, ref errors, @throw:true);
+            
+            byOwnerId.EntityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
+            
+            byOwnerId.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
+            
+            #endregion
         }
         
         // Set @throw true if API is responsible of error
@@ -179,7 +196,7 @@ namespace GenericCRUD
             if (!Validators[nameof(GetById)].Validate(param, ref errors))
                 return new ApiResult<IEnumerable<T>>() { Result = null, Successful = false, Errors = errors };
 
-            var entities = await DbReadSelector(param, _genericRepo);
+            var entities = await DbReadChildSelector(x => param.EntityIds.Contains(x.Id), _genericRepo);
 
             return new ApiResult<IEnumerable<T>>(entities);
         }
@@ -217,6 +234,20 @@ namespace GenericCRUD
             var success = await _genericRepo.DeleteAsync(x => param.EntityIds.Contains(x.Id));
 
             return new ApiResult<bool?>(success);        
+        }
+        
+        // ** This is far from being elegant. How else can we introduce IOwnedEntity constraint without making the whole GenericCrud constrained to it?
+        public static async Task<ApiResult<IEnumerable<J>>> GetByOwnerId<J>(CrudParam<J> param, IGenericCrudLogic<J> logic, IDapperRepository<J> repo) where J : class, IIdEntity, IOwnedEntity
+        {
+            var errors = new List<ValidationError>();
+            if (!logic.Validators[nameof(GetByOwnerId)].Validate(param, ref errors))
+                return new ApiResult<IEnumerable<J>>() { Result = null, Successful = false, Errors = errors };
+
+            var requesterId = int.Parse(param.Requester.Identity.Name);
+            
+            var entities = await logic.DbReadChildSelector(x => x.OwnerId == requesterId, repo);
+
+            return new ApiResult<IEnumerable<J>>(entities);
         }
     }
 }
