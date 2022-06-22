@@ -8,6 +8,10 @@ using Newtonsoft.Json;
 
 namespace GenericCRUD
 {
+    /// <summary>
+    /// An interface defining primitive CRUD operations. Implementors of this interface will be employed by an API Controller class.
+    /// </summary>
+    /// <typeparam name="T">Entity type</typeparam>
     public interface IGenericCrudLogic<T> where T : class, IIdEntity
     {
         Dictionary<string, Validator<T>> Validators { get; set; }

@@ -8,10 +8,24 @@ using MicroOrm.Dapper.Repositories;
 
 namespace GenericCRUD
 {
+    /// <summary>
+    /// Encapsulates the 3 primitive ValidationDelegates. Each CRUD action has its own Validator. Each validator wraps 3
+    /// ValidationDelegates.
+    /// </summary>
+    /// <typeparam name="T">Entity type</typeparam>
     public class Validator<T> where T : class, IIdEntity
     {
+        /// <summary>
+        /// Validate whether the API code passed a valid CrudParam. Doesn't validate the API clients' inputs.
+        /// </summary>
         public ValidationDelegate<T> ParameterValidation { get; set; } = (CrudParam<T> param, ref List<ValidationError> errors) => true;
+        /// <summary>
+        /// Validate the properties, indexes, Ids of the API clients' input. 
+        /// </summary>
         public ValidationDelegate<T> EntityValidation { get; set; } = (CrudParam<T> param, ref List<ValidationError> errors) => true;
+        /// <summary>
+        /// Validate the authority of the API clients to perform the given action.
+        /// </summary>
         public ValidationDelegate<T> AuthorityValidation { get; set; } = (CrudParam<T> param, ref List<ValidationError> errors) => true;
 
         public virtual bool Validate(CrudParam<T> param, ref List<ValidationError> errors)
@@ -46,7 +60,10 @@ namespace GenericCRUD
             return validationResult.IsValid;
         }
         
-        // Basic auth validation for Read & Delete
+        /// <summary>
+        /// Helper method checking whether all of the param.EntityIds are owned by param.Requester. Intended to be used for the validations
+        /// before Read and Delete Actions.
+        /// </summary>
         public static bool RDValidation<J>(CrudParam<J> param, ref List<ValidationError> errors, IDapperRepository<J> repo) where J : class, IIdEntity, IOwnedEntity
         {
             if(!int.TryParse(param.Requester.Identity.Name, out var requesterId))
@@ -63,7 +80,10 @@ namespace GenericCRUD
             return true;
         }
 
-        // Basic auth validation for Update & PartialUpdate (Partial Update already uses Update's validation method by default)
+        /// <summary>
+        /// Helper method checking whether param.Entity.Id is owned by param.Requester. Intended to be used for the validations before
+        /// Update and Partial Update Actions. (Partial Update already uses Update's validation method under the hood by default)
+        /// </summary>
         public static bool UValidation<J>(CrudParam<J> param, ref List<ValidationError> errors, IDapperRepository<J> repo) where J : class, IIdEntity, IOwnedEntity
         {
             if(!int.TryParse(param.Requester.Identity.Name, out var requesterId))

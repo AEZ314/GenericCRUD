@@ -11,12 +11,30 @@ using Microsoft.AspNetCore.JsonPatch;
 
 namespace GenericCRUD
 {
+    
+    /// <summary>
+    /// Default implementation for IGenericCrudLogic. You can add your custom logic or override default logic by inheriting this class.
+    /// </summary>
+    /// <typeparam name="T">Entity type</typeparam>
     public class GenericCrudLogic<T> : IGenericCrudLogic<T> where T : class, IIdEntity
     {
+        /// <summary>
+        /// Maps CRUD methods' names to their respective validation methods. Default CRUD method implementations use
+        /// nameof(Method) to get their validators. You can likewise override existing validators through this dictionary.
+        /// </summary>
         public Dictionary<string, Validator<T>> Validators { get; set; } = new();
+        /// <summary>
+        /// Set this if you want to use fluent validation instead of DataAnnotations. 
+        /// </summary>
         public AbstractValidator<T> FluentValidator { get; set; }
+        /// <summary>
+        /// Set this to configure DB Entity mappings. Eg: [Join] attributes. This is related to the inner workings of dapper-extensions lib.
+        /// </summary>
         public Func<Expression<Func<T, bool>>, IDapperRepository<T>, Task<IEnumerable<T>>> DbReadChildSelector { get; set; } = (exp, repo) => repo.FindAllAsync(exp);
 
+        /// <summary>
+        /// Used by the Logic class to access the DB.
+        /// </summary>
         protected readonly IDapperRepository<T> _genericRepo;
 
 
@@ -237,6 +255,9 @@ namespace GenericCRUD
         }
         
         // ** This is far from being elegant. How else can we introduce IOwnedEntity constraint without making the whole GenericCrud constrained to it?
+        /// <summary>
+        /// You currently need to inject dependencies directly to method due to design conflicts. A better structure will be introduced later.
+        /// </summary>
         public static async Task<ApiResult<IEnumerable<J>>> GetByOwnerId<J>(CrudParam<J> param, IGenericCrudLogic<J> logic, IDapperRepository<J> repo) where J : class, IIdEntity, IOwnedEntity
         {
             var errors = new List<ValidationError>();

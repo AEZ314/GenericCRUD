@@ -9,9 +9,18 @@ using Dapper;
 
 namespace GenericCRUD
 {
+    /// <summary>
+    /// The default controller for employing an IGenericCrudLogic. This class will only make use of the default CRUD operations, but
+    /// you can create a custom Controller class deriving from this one and manually define how the Custom Logic's methods will be
+    /// employed. See the sample project for more details.
+    /// </summary>
+    /// <typeparam name="T">Entity type</typeparam>
     [ApiController]
     public class GenericCrudBaseController<T> : ControllerBase where T : class, IIdEntity
     {
+        /// <summary>
+        /// The Crud Logic class to be employed.
+        /// </summary>
         protected readonly IGenericCrudLogic<T> _logic;
 
 

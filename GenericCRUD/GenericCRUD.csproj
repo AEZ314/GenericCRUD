@@ -3,6 +3,16 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
         <LangVersion>9</LangVersion>
+        <Title>GenericCRUD</Title>
+        <Authors>A. Efe Zaladin</Authors>
+        <Description>Don't repeat yourself! GenericCrud is a highly flexible library that provides your API with a skeleton for CRUD controllers without using EF. You can configure model validation, user permission validation etc.</Description>
+        <PackageProjectUrl>https://github.com/AEZ314/GenericCRUD</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/AEZ314/GenericCRUD/blob/main/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/AEZ314/GenericCRUD</RepositoryUrl>
+        <RepositoryType>GitHub</RepositoryType>
+        <PackageTags>crud,micro-orm,dapper,sql-generation,crud-generator,crud-api </PackageTags>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>

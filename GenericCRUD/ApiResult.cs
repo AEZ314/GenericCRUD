@@ -6,6 +6,10 @@ using Newtonsoft.Json;
 
 namespace GenericCRUD
 {
+    /// <summary>
+    /// An API result wrapper for delivering metadata along the result object.
+    /// </summary>
+    /// <typeparam name="T">Entity type</typeparam>
     public class ApiResult<T>
     {
         public T Result { get; set; }
