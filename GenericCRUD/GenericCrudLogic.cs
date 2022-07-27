@@ -19,182 +19,26 @@ namespace GenericCRUD
     public class GenericCrudLogic<T> : IGenericCrudLogic<T> where T : class, IIdEntity
     {
         /// <summary>
+        /// Used by the Logic class to access the DB.
+        /// </summary>
+        public IDapperRepository<T> GenericRepo { get; set; }
+        /// <summary>
         /// Maps CRUD methods' names to their respective validation methods. Default CRUD method implementations use
         /// nameof(Method) to get their validators. You can likewise override existing validators through this dictionary.
         /// </summary>
-        public Dictionary<string, Validator<T>> Validators { get; set; } = new();
-        /// <summary>
-        /// Set this if you want to use fluent validation instead of DataAnnotations. 
-        /// </summary>
-        public AbstractValidator<T> FluentValidator { get; set; }
+        public Dictionary<string, GenericCrudValidator<T>> Validators { get; set; } = new();
+
         /// <summary>
         /// Set this to configure DB Entity mappings. Eg: [Join] attributes. This is related to the inner workings of dapper-extensions lib.
         /// </summary>
-        public Func<Expression<Func<T, bool>>, IDapperRepository<T>, Task<IEnumerable<T>>> DbReadChildSelector { get; set; } = (exp, repo) => repo.FindAllAsync(exp);
-
-        /// <summary>
-        /// Used by the Logic class to access the DB.
-        /// </summary>
-        protected readonly IDapperRepository<T> _genericRepo;
+        public Func<Expression<Func<T, bool>>, Task<IEnumerable<T>>> DbReadChildSelector { get; set; }
 
 
-        public GenericCrudLogic(IDapperRepository<T> genericRepo, AbstractValidator<T> fluentValidator = null)
+        public GenericCrudLogic(IDapperRepository<T> genericRepo)
         {
-            FluentValidator = fluentValidator;
-            _genericRepo = genericRepo;
-            SetupDefaultValidators();
+            DbReadChildSelector = DefaultDbReadSelector;
+            GenericRepo = genericRepo;
         }
-
-        private void SetupDefaultValidators()
-        {
-            #region Create
-            
-            var create = Validators[nameof(Create)] = new Validator<T>();
-            
-            create.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
-                IsNotNull(param, ref errors, @throw:true) && 
-                IsNotNull(param.Requester, ref errors, @throw:true) &&
-                IsNotNull(param.Requester.Identity, ref errors, @throw:true) &&
-                IsNotNull(param.Requester.Identity.Name, ref errors, @throw:true) &&
-                IsNotNull(param.Entity, ref errors);
-            
-            create.EntityValidation = FluentValidator == null ? 
-                Validator<T>.DataAnnotationEntityValidation :
-                (CrudParam<T> x, ref List<ValidationError> y) => Validator<T>.FluentEntityValidation(x, ref y, FluentValidator);
-            
-            create.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
-            
-            #endregion
-
-            #region Read
-            
-            var read = Validators[nameof(GetById)] = new Validator<T>();
-
-            read.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
-                IsNotNull(param, ref errors, @throw:true) &&
-                IsNotNull(param.Requester, ref errors, @throw:true) &&
-                IsNotNull(param.Requester.Identity, ref errors, @throw:true) &&
-                IsNotNull(param.Requester.Identity.Name, ref errors, @throw:true) &&
-                IsNotNullEmpty(param.EntityIds, ref errors);
-            
-            read.EntityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
-            
-            read.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
-            
-            #endregion
-            
-            #region Update
-            
-            var update = Validators[nameof(Update)] = new Validator<T>();
-            
-            update.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
-                IsNotNull(param, ref errors, @throw:true) &&
-                IsNotNull(param.Requester, ref errors, @throw:true) &&
-                IsNotNull(param.Requester.Identity, ref errors, @throw:true) &&
-                IsNotNull(param.Requester.Identity.Name, ref errors, @throw:true) &&
-                IsNotNull(param.Entity, ref errors) &&
-                IsNotNull(param.Entity.Id, ref errors);
-            
-            update.EntityValidation = FluentValidator == null ? 
-                Validator<T>.DataAnnotationEntityValidation :
-                (CrudParam<T> x, ref List<ValidationError> y) => Validator<T>.FluentEntityValidation(x, ref y, FluentValidator);
-            
-            update.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
-            
-            #endregion
-
-            #region PartialUpdate
-            
-            var partial = Validators[nameof(PartialUpdate)] = new Validator<T>();
-            
-            partial.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
-                IsNotNull(param, ref errors, @throw:true) &&
-                IsNotNull(param.Requester, ref errors, @throw:true) &&
-                IsNotNull(param.Requester.Identity, ref errors, @throw:true) &&
-                IsNotNull(param.Requester.Identity.Name, ref errors, @throw:true) &&
-                IsNotNullEmpty(param.EntityIds, ref errors) &&
-                IsNotNull(param.Patch, ref errors);
-
-            partial.EntityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
-            
-            partial.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
-            
-            #endregion
-
-            #region Delete
-            
-            var delete = Validators[nameof(Delete)] = new Validator<T>();
-            delete.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
-                IsNotNull(param, ref errors, @throw:true) &&
-                IsNotNull(param.Requester, ref errors, @throw:true) &&
-                IsNotNull(param.Requester.Identity, ref errors, @throw:true) &&
-                IsNotNull(param.Requester.Identity.Name, ref errors, @throw:true) &&
-                IsNotNullEmpty(param.EntityIds, ref errors);
-
-            delete.EntityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
-
-            delete.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
-
-            #endregion
-            
-            #region GetByOwnerId
-            
-            var byOwnerId = Validators[nameof(GetByOwnerId)] = new Validator<T>();
-
-            byOwnerId.ParameterValidation = (CrudParam<T> param, ref List<ValidationError> errors) =>
-                IsNotNull(param, ref errors, @throw:true) &&
-                IsNotNull(param.Requester, ref errors, @throw:true) &&
-                IsNotNull(param.Requester.Identity, ref errors, @throw:true) &&
-                IsNotNull(param.Requester.Identity.Name, ref errors, @throw:true);
-            
-            byOwnerId.EntityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
-            
-            byOwnerId.AuthorityValidation = (CrudParam<T> param, ref List<ValidationError> errors) => true;
-            
-            #endregion
-        }
-        
-        // Set @throw true if API is responsible of error
-        protected bool IsNotNull<J>(J item, ref List<ValidationError> errors, bool @throw = false)
-        {
-            if (item != null)
-                return true;
-            
-            var error = new ValidationError(typeof(J).Name, "Argument can't be null.");
-            errors.Add(error);
-            
-            if (@throw)
-                throw new ArgumentNullException(typeof(J).Name);
-            
-            return false;
-        }
-        protected bool IsNotNullEmpty<J>(IEnumerable<J> items, ref List<ValidationError> errors, bool @throw = false)
-        {
-            if (items != null && items.Count() > 0)
-                return true;
-            
-            var error = new ValidationError(typeof(J).Name, "Argument can't be null or empty.");
-            errors.Add(error);
-            
-            if (@throw)
-                throw new ArgumentException("Argument can't be null or empty.", typeof(J).Name);
-
-            return false;
-        }
-        protected bool IsInRange(ref List<ValidationError> errors, int integer, int inclusiveMin = int.MinValue, int inclusiveMax = int.MaxValue, bool @throw = false)
-        {
-            if (integer >= inclusiveMin || integer <= inclusiveMax)
-                return true;
-
-            var error = new ValidationError(nameof(integer), $"{nameof(integer)} ({integer}) isn't inclusively between {inclusiveMin} and {inclusiveMax}.");
-            errors.Add(error);
-            
-            if (@throw)
-                throw new ArgumentException($"{nameof(integer)} ({integer}) isn't inclusively between {inclusiveMin} and {inclusiveMax}.", nameof(integer));
-
-            return false;
-        }
-        
         
         
         public virtual async Task<ApiResult<int?>> Create(CrudParam<T> param)
@@ -203,7 +47,7 @@ namespace GenericCRUD
             if (!Validators[nameof(Create)].Validate(param, ref errors))
                 return new ApiResult<int?>() { Result = null, Successful = false, Errors = errors };
 
-            await _genericRepo.InsertAsync(param.Entity);
+            await GenericRepo.InsertAsync(param.Entity);
 
             return new ApiResult<int?>(param.Entity.Id);
         }
@@ -214,7 +58,7 @@ namespace GenericCRUD
             if (!Validators[nameof(GetById)].Validate(param, ref errors))
                 return new ApiResult<IEnumerable<T>>() { Result = null, Successful = false, Errors = errors };
 
-            var entities = await DbReadChildSelector(x => param.EntityIds.Contains(x.Id), _genericRepo);
+            var entities = await DbReadChildSelector(x => param.EntityIds.Contains(x.Id));
 
             return new ApiResult<IEnumerable<T>>(entities);
         }
@@ -227,7 +71,7 @@ namespace GenericCRUD
             if (!Validators[nameof(Update)].Validate(param, ref errors))
                 return new ApiResult<bool?>() { Result = null, Successful = false, Errors = errors };
             
-            var success = await _genericRepo.UpdateAsync(param.Entity);
+            var success = await GenericRepo.UpdateAsync(param.Entity);
             
             return new ApiResult<bool?>(success);
         }
@@ -238,7 +82,7 @@ namespace GenericCRUD
             if (!Validators[nameof(PartialUpdate)].Validate(param, ref errors))
                 return new ApiResult<bool?>() { Result = null, Successful = false, Errors = errors };
             
-            var original = await _genericRepo.FindByIdAsync(param.EntityIds.First());
+            var original = await GenericRepo.FindByIdAsync(param.EntityIds.First());
             param.Patch.ApplyTo(original);
             param.Entity = original;
             return await Update(param);
@@ -249,7 +93,7 @@ namespace GenericCRUD
             if (!Validators[nameof(Delete)].Validate(param, ref errors))
                 return new ApiResult<bool?>() { Result = null, Successful = false, Errors = errors };
 
-            var success = await _genericRepo.DeleteAsync(x => param.EntityIds.Contains(x.Id));
+            var success = await GenericRepo.DeleteAsync(x => param.EntityIds.Contains(x.Id));
 
             return new ApiResult<bool?>(success);        
         }
@@ -258,7 +102,7 @@ namespace GenericCRUD
         /// <summary>
         /// You currently need to inject dependencies directly to method due to design conflicts. A better structure will be introduced later.
         /// </summary>
-        public static async Task<ApiResult<IEnumerable<J>>> GetByOwnerId<J>(CrudParam<J> param, IGenericCrudLogic<J> logic, IDapperRepository<J> repo) where J : class, IIdEntity, IOwnedEntity
+        public static async Task<ApiResult<IEnumerable<J>>> GetByOwnerId<J>(CrudParam<J> param, IGenericCrudLogic<J> logic) where J : class, IIdEntity, IOwnedEntity
         {
             var errors = new List<ValidationError>();
             if (!logic.Validators[nameof(GetByOwnerId)].Validate(param, ref errors))
@@ -266,9 +110,12 @@ namespace GenericCRUD
 
             var requesterId = int.Parse(param.Requester.Identity.Name);
             
-            var entities = await logic.DbReadChildSelector(x => x.OwnerId == requesterId, repo);
+            var entities = await logic.DbReadChildSelector(x => x.OwnerId == requesterId);
 
             return new ApiResult<IEnumerable<J>>(entities);
         }
+        
+        
+        private Task<IEnumerable<T>> DefaultDbReadSelector(Expression<Func<T, bool>> predicate) => GenericRepo.FindAllAsync(predicate);
     }
 }

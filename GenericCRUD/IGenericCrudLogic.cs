@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using FluentValidation;
 using MicroOrm.Dapper.Repositories;
 using Microsoft.AspNetCore.JsonPatch;
 using Newtonsoft.Json;
@@ -14,8 +15,9 @@ namespace GenericCRUD
     /// <typeparam name="T">Entity type</typeparam>
     public interface IGenericCrudLogic<T> where T : class, IIdEntity
     {
-        Dictionary<string, Validator<T>> Validators { get; set; }
-        Func<Expression<Func<T, bool>>, IDapperRepository<T>, Task<IEnumerable<T>>> DbReadChildSelector { get; set; }
+        IDapperRepository<T> GenericRepo { get; set; }
+        Dictionary<string, GenericCrudValidator<T>> Validators { get; set; }
+        Func<Expression<Func<T, bool>>, Task<IEnumerable<T>>> DbReadChildSelector { get; set; }
         
         Task<ApiResult<int?>> Create(CrudParam<T> param);
         Task<ApiResult<bool?>> Delete(CrudParam<T> param);

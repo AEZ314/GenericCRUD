@@ -23,7 +23,7 @@ namespace GenericCRUD
         /// </summary>
         protected readonly IGenericCrudLogic<T> _logic;
 
-
+        
         public GenericCrudBaseController(IGenericCrudLogic<T> logic)
         {
             _logic = logic;

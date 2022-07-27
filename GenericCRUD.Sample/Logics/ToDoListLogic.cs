@@ -12,11 +12,10 @@ namespace GenericCRUD.Sample.Logics
     {
         public ToDoListLogic(IDapperRepository<ToDoList> genericRepo) : base(genericRepo)
         {
-            DbReadChildSelector = (exp, repo) => repo.FindAllAsync<ToDoItem>(exp, x => x.Items);
-            
-            Validators[nameof(GetById)].AuthorityValidation = (CrudParam<ToDoList> param, ref List<ValidationError> errors) => Validator<ToDoList>.RDValidation(param, ref errors, _genericRepo);
-            Validators[nameof(Update)].AuthorityValidation = (CrudParam<ToDoList> param, ref List<ValidationError> errors) => Validator<ToDoList>.UValidation(param, ref errors, _genericRepo);
-            Validators[nameof(Delete)].AuthorityValidation = (CrudParam<ToDoList> param, ref List<ValidationError> errors) => Validator<ToDoList>.RDValidation(param, ref errors, _genericRepo);
+            DbReadChildSelector = exp => GenericRepo.FindAllAsync<ToDoItem>(exp, x => x.Items);
+            var configurator = new GenericCrudLogicConfigurator();
+            configurator.SetupDefaultValidators(this);
+            configurator.SetupDefaultAuthorityValidators(this);
         }
 
         public override Task<ApiResult<int?>> Create(CrudParam<ToDoList> param)
@@ -27,7 +26,7 @@ namespace GenericCRUD.Sample.Logics
         
         public Task<ApiResult<IEnumerable<ToDoList>>> GetByOwnerId(CrudParam<ToDoList> param)
         {
-            return GenericCrudLogic<ToDoList>.GetByOwnerId(param, this, _genericRepo);
+            return GenericCrudLogic<ToDoList>.GetByOwnerId(param, this);
         }
     }
 }
